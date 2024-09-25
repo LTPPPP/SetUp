@@ -60,15 +60,14 @@
         });
 
         // Update the button states when receiving data from the server
-        socket.on('update-buttons', (buttonStates) => {
+        socket.on('update-buttons', (buttonStates, names) => {
             buttonStates.forEach((state, index) => {
                 const newClass = state ? 'button red' : 'button green';
                 if (buttons[index].className === 'button red' && newClass === 'button green') {
                     notificationSound.play();
-                    notifications[index].textContent = 'Đã trống';
-                    setTimeout(() => {
-                        notifications[index].textContent = '';
-                    }, 3000);
+                    notifications[index].textContent = names[0] || 'Đã trống';
+                } else if (newClass === 'button red') {
+                    notifications[index].textContent = ''; // Ẩn thông báo khi nút chuyển sang màu đỏ
                 }
                 buttons[index].className = newClass;
             });
