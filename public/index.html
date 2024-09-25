@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bàn phỏng vấn</title>
+    <link rel="stylesheet" href="./assets/style.css">
+</head>
+
+<body>
+    <h1>Bàn phỏng vấn</h1>
+    <div id="buttons">
+        <div class="button-container">
+            <div class="notification" id="notification0"></div>
+            <button class="button" id="button0">Bàn 1</button>
+        </div>
+        <div class="button-container">
+            <div class="notification" id="notification1"></div>
+            <button class="button" id="button1">Bàn 2</button>
+        </div>
+        <div class="button-container">
+            <div class="notification" id="notification2"></div>
+            <button class="button" id="button2">Bàn 3</button>
+        </div>
+        <div class="button-container">
+            <div class="notification" id="notification3"></div>
+            <button class="button" id="button3">Bàn 4</button>
+        </div>
+    </div>
+
+    <audio id="notificationSound" src="./assets/sound/alarm.wav"></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const notificationSound = document.getElementById('notificationSound');
+
+        // Array of button elements
+        const buttons = [
+            document.getElementById('button0'),
+            document.getElementById('button1'),
+            document.getElementById('button2'),
+            document.getElementById('button3')
+        ];
+
+        // Array of notification elements
+        const notifications = [
+            document.getElementById('notification0'),
+            document.getElementById('notification1'),
+            document.getElementById('notification2'),
+            document.getElementById('notification3')
+        ];
+
+        // Handle click event for each button
+        buttons.forEach((button, index) => {
+            button.addEventListener('click', () => {
+                socket.emit('button-click', index); // Emit button click event to the server
+            });
+        });
+
+        // Update the button states when receiving data from the server
+        socket.on('update-buttons', (buttonStates) => {
+            buttonStates.forEach((state, index) => {
+                const newClass = state ? 'button red' : 'button green';
+                if (buttons[index].className === 'button red' && newClass === 'button green') {
+                    notificationSound.play();
+                    notifications[index].textContent = 'Đã trống';
+                    setTimeout(() => {
+                        notifications[index].textContent = '';
+                    }, 3000);
+                }
+                buttons[index].className = newClass;
+            });
+        });
+    </script>
+</body>
+
+</html>
