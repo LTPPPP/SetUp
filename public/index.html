@@ -10,22 +10,58 @@
 
 <body>
     <h1>Bàn phỏng vấn</h1>
-    <div id="buttons">
-        <div class="button-container">
-            <div class="notification" id="notification0"></div>
-            <button class="button" id="button0">Bàn 1</button>
+    <div id="tables">
+        <div class="table-container">
+            <div class="table-title">Bàn 1</div>
+            <div class="button-group">
+                <div class="button-container">
+                    <div class="notification" id="notification0"></div>
+                    <button class="button" id="button0">A</button>
+                </div>
+                <div class="button-container">
+                    <div class="notification" id="notification1"></div>
+                    <button class="button" id="button1">B</button>
+                </div>
+            </div>
         </div>
-        <div class="button-container">
-            <div class="notification" id="notification1"></div>
-            <button class="button" id="button1">Bàn 2</button>
+        <div class="table-container">
+            <div class="table-title">Bàn 2</div>
+            <div class="button-group">
+                <div class="button-container">
+                    <div class="notification" id="notification2"></div>
+                    <button class="button" id="button2">A</button>
+                </div>
+                <div class="button-container">
+                    <div class="notification" id="notification3"></div>
+                    <button class="button" id="button3">B</button>
+                </div>
+            </div>
         </div>
-        <div class="button-container">
-            <div class="notification" id="notification2"></div>
-            <button class="button" id="button2">Bàn 3</button>
+        <div class="table-container">
+            <div class="table-title">Bàn 3</div>
+            <div class="button-group">
+                <div class="button-container">
+                    <div class="notification" id="notification4"></div>
+                    <button class="button" id="button4">A</button>
+                </div>
+                <div class="button-container">
+                    <div class="notification" id="notification5"></div>
+                    <button class="button" id="button5">B</button>
+                </div>
+            </div>
         </div>
-        <div class="button-container">
-            <div class="notification" id="notification3"></div>
-            <button class="button" id="button3">Bàn 4</button>
+        <div class="table-container">
+            <div class="table-title">Bàn 4</div>
+            <div class="button-group">
+                <div class="button-container">
+                    <div class="notification" id="notification6"></div>
+                    <button class="button" id="button6">A</button>
+                </div>
+                <div class="button-container">
+                    <div class="notification" id="notification7"></div>
+                    <button class="button" id="button7">B</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -37,25 +73,15 @@
         const notificationSound = document.getElementById('notificationSound');
 
         // Array of button elements
-        const buttons = [
-            document.getElementById('button0'),
-            document.getElementById('button1'),
-            document.getElementById('button2'),
-            document.getElementById('button3')
-        ];
+        const buttons = Array.from({ length: 8 }, (_, i) => document.getElementById(`button${i}`));
 
         // Array of notification elements
-        const notifications = [
-            document.getElementById('notification0'),
-            document.getElementById('notification1'),
-            document.getElementById('notification2'),
-            document.getElementById('notification3')
-        ];
+        const notifications = Array.from({ length: 8 }, (_, i) => document.getElementById(`notification${i}`));
 
         // Handle click event for each button
         buttons.forEach((button, index) => {
             button.addEventListener('click', () => {
-                socket.emit('button-click', index); // Emit button click event to the server
+                socket.emit('button-click', index);
             });
         });
 
@@ -67,7 +93,7 @@
                     notificationSound.play();
                     notifications[index].textContent = names[0] || 'Đã trống';
                 } else if (newClass === 'button red') {
-                    notifications[index].textContent = ''; // Ẩn thông báo khi nút chuyển sang màu đỏ
+                    notifications[index].textContent = '';
                 }
                 buttons[index].className = newClass;
             });
