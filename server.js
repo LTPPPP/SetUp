@@ -7,10 +7,12 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-let buttonStates = Array(8).fill(false);
-let currentIndex = 0;
-let names = [];
-let checkboxStates = [];
+const spreadsheetId = '';
+
+let buttonStates = Array(8).fill(true);
+let currentNames = Array(8).fill('');
+let currentMSSVs = Array(8).fill('');
+let waitingList = [];
 
 // Set up Google Sheets API
 const auth = new google.auth.GoogleAuth({
@@ -23,30 +25,29 @@ async function getAuthClient() {
     return authClient;
 }
 
-async function fetchNames() {
+// Fetch names, MSSV, and status
+async function fetchData() {
     try {
-        console.log('Fetching names from Google Sheets...');
+        console.log('Fetching data from Google Sheets...');
         const authClient = await getAuthClient();
         const sheets = google.sheets({ version: 'v4', auth: authClient });
-
-        const spreadsheetId = '16YLsvBoO5qtbfQdNoGLzUVL3Xeh4uKa8m1JDn4Wb6u4';
-        const range = 'Sheet1!A:C'; // Changed to include column C
+        const range = 'Điểm Danh!A6:G'; // Start from row 6, columns A to G
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
             range: range,
         });
 
-        if (response.data.values.length) {
-            names = [];
-            checkboxStates = [];
-            response.data.values.slice(1).forEach(row => {
-                if (row[2] !== 'TRUE') { // Check if the checkbox is not checked
-                    names.push(row[1]);
-                    checkboxStates.push(row[2] === 'TRUE');
-                }
-            });
-            console.log('Names and checkbox states from Google Sheets:', names, checkboxStates);
+        if (response.data.values && response.data.values.length) {
+            waitingList = response.data.values
+                .filter(row => row[6] === 'Đang Chờ')
+                .map(row => ({
+                    name: row[0],
+                    mssv: row[1],
+                    rowIndex: response.data.values.indexOf(row) + 6 // +6 because we start from row 6
+                }));
+
+            console.log('Fetched waiting list:', waitingList);
         } else {
             console.log('No data found in the specified range.');
         }
@@ -55,31 +56,30 @@ async function fetchNames() {
     }
 }
 
-async function updateCheckbox(index) {
+// Update status to "Đã Phỏng Vấn" for the specified row
+async function updateStatus(rowIndex) {
     try {
         const authClient = await getAuthClient();
         const sheets = google.sheets({ version: 'v4', auth: authClient });
-
-        const spreadsheetId = '16YLsvBoO5qtbfQdNoGLzUVL3Xeh4uKa8m1JDn4Wb6u4';
-        const range = `Sheet1!C${index + 2}`; // +2 because sheet is 1-indexed and we have a header row
+        const range = `Điểm Danh!G${rowIndex}`;
 
         await sheets.spreadsheets.values.update({
             spreadsheetId: spreadsheetId,
             range: range,
             valueInputOption: 'USER_ENTERED',
             resource: {
-                values: [['TRUE']]
+                values: [['Đã Phỏng Vấn']]
             }
         });
 
-        console.log(`Updated checkbox for index ${index}`);
+        console.log(`Updated status to "Đã Phỏng Vấn" for row ${rowIndex}`);
     } catch (error) {
-        console.error('Error updating checkbox:', error);
+        console.error('Error updating status:', error);
     }
 }
 
-// Fetch names every 5 seconds
-setInterval(fetchNames, 5000);
+// Fetch data every 5 seconds
+setInterval(fetchData, 5000);
 
 // Serve the static files (frontend)
 app.use(express.static('public'));
@@ -87,9 +87,8 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
     console.log('A user connected');
 
-    // Send the current button states to the newly connected user
-    socket.emit('update-buttons', buttonStates, names.slice(0, 8));
-    console.log('Sent current button states and names to new user');
+    // Send the current button states and names to the newly connected user
+    socket.emit('update-buttons', buttonStates, currentNames, currentMSSVs);
 
     // Handle button click event
     socket.on('button-click', async (index) => {
@@ -98,17 +97,20 @@ io.on('connection', (socket) => {
         // Toggle the button state
         buttonStates[index] = !buttonStates[index];
 
-        let name = '';
-        if (buttonStates[index] === false) { // Changed from red to green
-            name = names[currentIndex] || '';
-            console.log(`Assigned name: ${name} at index ${currentIndex}`);
-            await updateCheckbox(currentIndex);
-            currentIndex++;
+        if (buttonStates[index]) { // Green to Red
+            if (waitingList.length > 0) {
+                const nextPerson = waitingList.shift();
+                currentNames[index] = nextPerson.name;
+                currentMSSVs[index] = nextPerson.mssv;
+                await updateStatus(nextPerson.rowIndex);
+            }
+        } else { // Red to Blue
+            currentNames[index] = '';
+            currentMSSVs[index] = '';
         }
 
-        // Broadcast the updated states to all users
-        io.emit('update-buttons', buttonStates, [name]);
-        console.log('Updated button states and name sent to all users');
+        // Broadcast the updated states and names to all users
+        io.emit('update-buttons', buttonStates, currentNames, currentMSSVs);
     });
 
     socket.on('disconnect', () => {

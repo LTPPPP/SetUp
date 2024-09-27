@@ -16,11 +16,11 @@
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification0"></div>
-                    <button class="button" id="button0">A</button>
+                    <button class="button green" id="button0">Bảo Nguyên</button>
                 </div>
                 <div class="button-container">
                     <div class="notification" id="notification1"></div>
-                    <button class="button" id="button1">B</button>
+                    <button class="button green" id="button1">Phan<br>Thuận</button>
                 </div>
             </div>
         </div>
@@ -29,11 +29,11 @@
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification2"></div>
-                    <button class="button" id="button2">A</button>
+                    <button class="button green" id="button2">Minh<br>Tiến</button>
                 </div>
                 <div class="button-container">
                     <div class="notification" id="notification3"></div>
-                    <button class="button" id="button3">B</button>
+                    <button class="button green" id="button3">Hoàng<br>Đạt</button>
                 </div>
             </div>
         </div>
@@ -42,11 +42,11 @@
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification4"></div>
-                    <button class="button" id="button4">A</button>
+                    <button class="button green" id="button4">Đại<br>Nhân</button>
                 </div>
                 <div class="button-container">
                     <div class="notification" id="notification5"></div>
-                    <button class="button" id="button5">B</button>
+                    <button class="button green" id="button5">Minh<br>Phúc</button>
                 </div>
             </div>
         </div>
@@ -55,16 +55,15 @@
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification6"></div>
-                    <button class="button" id="button6">A</button>
+                    <button class="button green" id="button6">Lê<br>Thịnh</button>
                 </div>
                 <div class="button-container">
                     <div class="notification" id="notification7"></div>
-                    <button class="button" id="button7">B</button>
+                    <button class="button green" id="button7">Tấn<br>Cường</button>
                 </div>
             </div>
         </div>
     </div>
-
     <audio id="notificationSound" src="./assets/sound/alarm.wav"></audio>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -86,16 +85,18 @@
         });
 
         // Update the button states when receiving data from the server
-        socket.on('update-buttons', (buttonStates, names) => {
+        socket.on('update-buttons', (buttonStates, names, mssvs) => {
             buttonStates.forEach((state, index) => {
-                const newClass = state ? 'button red' : 'button green';
-                if (buttons[index].className === 'button red' && newClass === 'button green') {
-                    notificationSound.play();
-                    notifications[index].textContent = names[0] || 'Đã trống';
-                } else if (newClass === 'button red') {
-                    notifications[index].textContent = '';
+                if (state) {
+                    buttons[index].className = 'button red';
+                    notifications[index].textContent = `${names[index] || ''} - ${mssvs[index] || ''}`;
+                    if (buttons[index].className !== 'button red') {
+                        notificationSound.play();
+                    }
+                } else {
+                    buttons[index].className = names[index] ? 'button blue' : 'button green';
+                    notifications[index].textContent = names[index] ? `${names[index]} - ${mssvs[index]}` : 'Đã trống';
                 }
-                buttons[index].className = newClass;
             });
         });
     </script>
