@@ -80,6 +80,8 @@
         // Handle click event for each button
         buttons.forEach((button, index) => {
             button.addEventListener('click', () => {
+                console.log(`Button ${index} clicked`);  // Log sự kiện nhấn nút
+                notificationSound.play();  // Phát âm thanh ngay lập tức khi nhấn nút
                 socket.emit('button-click', index);
             });
         });
@@ -90,9 +92,9 @@
                 if (state) {
                     buttons[index].className = 'button red';
                     notifications[index].textContent = `${names[index] || ''} - ${mssvs[index] || ''}`;
-                    if (buttons[index].className !== 'button red') {
-                        notificationSound.play();
-                    }
+
+                    // Play sound notification when button turns red
+                    notificationSound.play();
                 } else {
                     buttons[index].className = names[index] ? 'button blue' : 'button green';
                     notifications[index].textContent = names[index] ? `${names[index]} - ${mssvs[index]}` : 'Đã trống';
