@@ -12,7 +12,7 @@
     <h1>Bàn phỏng vấn</h1>
     <div id="tables">
         <div class="table-container">
-            <div class="table-title">Bàn 1</div>
+            <div class="table-title">Bàn 2</div>
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification0"></div>
@@ -25,11 +25,11 @@
             </div>
         </div>
         <div class="table-container">
-            <div class="table-title">Bàn 2</div>
+            <div class="table-title">Bàn 4</div>
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification2"></div>
-                    <button class="button green" id="button2">Minh<br>Tiến</button>
+                    <button class="button green" id="button2">Tấn<br>Cường</button>
                 </div>
                 <div class="button-container">
                     <div class="notification" id="notification3"></div>
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="table-container">
-            <div class="table-title">Bàn 3</div>
+            <div class="table-title">Bàn 1</div>
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification4"></div>
@@ -51,7 +51,7 @@
             </div>
         </div>
         <div class="table-container">
-            <div class="table-title">Bàn 4</div>
+            <div class="table-title">Bàn 3</div>
             <div class="button-group">
                 <div class="button-container">
                     <div class="notification" id="notification6"></div>
@@ -59,16 +59,14 @@
                 </div>
                 <div class="button-container">
                     <div class="notification" id="notification7"></div>
-                    <button class="button green" id="button7">Tấn<br>Cường</button>
+                    <button class="button green" id="button7">Minh<br>Tiến</button>
                 </div>
             </div>
         </div>
     </div>
     <audio id="notificationSound" src="./assets/sound/alarm.wav"></audio>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
         const notificationSound = document.getElementById('notificationSound');
 
         // Array of button elements
@@ -77,27 +75,28 @@
         // Array of notification elements
         const notifications = Array.from({ length: 8 }, (_, i) => document.getElementById(`notification${i}`));
 
+        // Check if all buttons are green
+        const allButtonsGreen = () => buttons.every(button => button.classList.contains('green'));
+
         // Handle click event for each button
         buttons.forEach((button, index) => {
             button.addEventListener('click', () => {
-                console.log(`Button ${index} clicked`);  // Log sự kiện nhấn nút
-                notificationSound.play();  // Phát âm thanh ngay lập tức khi nhấn nút
-                socket.emit('button-click', index);
-            });
-        });
+                console.log(`Button ${index} clicked`);
 
-        // Update the button states when receiving data from the server
-        socket.on('update-buttons', (buttonStates, names, mssvs) => {
-            buttonStates.forEach((state, index) => {
-                if (state) {
-                    buttons[index].className = 'button red';
-                    notifications[index].textContent = `${names[index] || ''} - ${mssvs[index] || ''}`;
-
-                    // Play sound notification when button turns red
-                    notificationSound.play();
+                // Toggle button color between green and red, and update the notification text
+                if (button.classList.contains('green')) {
+                    button.classList.remove('green');
+                    button.classList.add('red');
+                    notifications[index].textContent = 'Bàn Đang phỏng vấn'; // Update notification text
                 } else {
-                    buttons[index].className = names[index] ? 'button blue' : 'button green';
-                    notifications[index].textContent = names[index] ? `${names[index]} - ${mssvs[index]}` : 'Đã trống';
+                    button.classList.remove('red');
+                    button.classList.add('green');
+                    notifications[index].textContent = 'Bàn Trống'; // Clear notification
+                }
+
+                // Check if all buttons are green
+                if (allButtonsGreen()) {
+                    notificationSound.play(); // Play sound only when all buttons are green
                 }
             });
         });

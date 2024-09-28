@@ -1,3 +1,8 @@
+:root {
+    --main-color: green;
+    --BG--color: #463756;
+}
+
 body {
     font-family: Arial, sans-serif;
     display: flex;
@@ -6,7 +11,7 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #514c4c;
+    background-color: var(--BG--color);
 }
 
 h1 {
@@ -50,7 +55,7 @@ h1 {
 .notification {
     height: 40px;
     margin-bottom: 5px;
-    color: #4CAF50;
+    color: var(--main-color);
     font-weight: bold;
     text-align: center;
 }
@@ -75,7 +80,7 @@ h1 {
 }
 
 .green {
-    background-color: #4CAF50;
+    background-color: var(--main-color);
     color: white;
 }
 
